@@ -42,8 +42,12 @@ func (s *GameServiceImpl) StartGame(game *models.Game) string {
 	rand.Seed(time.Now().UnixNano())
 	for {
 		for i := range game.Players {
-			dice := s.getPlayerDice(game, &game.Players[i])
-			roll := s.rollDice(dice)
+			dice, err := s.getPlayerDice(game, &game.Players[i])
+			if err != nil {
+				log.Printf("Player %s's dicetype %s is not present. Ignoring roll.", game.Players[i].Name, game.Players[i].DiceEquiped)
+				continue
+			}
+			roll := s.rollDice(*dice)
 			log.Printf("Player %s rolled a %d", game.Players[i].Name, roll)
 
 			if game.Players[i].Position+roll > game.BoardSize {
@@ -64,13 +68,13 @@ func (s *GameServiceImpl) StartGame(game *models.Game) string {
 	}
 }
 
-func (s *GameServiceImpl) getPlayerDice(game *models.Game, player *models.Player) models.Dice {
+func (s *GameServiceImpl) getPlayerDice(game *models.Game, player *models.Player) (*models.Dice, error) {
 	for _, d := range game.Dices {
 		if d.Type == player.DiceEquiped {
-			return d
+			return &d, nil
 		}
 	}
-	return models.Dice{}
+	return nil, errors.New("dice type not found in collection")
 }
 
 func (s *GameServiceImpl) rollDice(dice models.Dice) int {

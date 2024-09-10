@@ -10,7 +10,6 @@ import (
 )
 
 func main() {
-	// Load game configuration
 	configData, err := ioutil.ReadFile("config/gameConfigOne.json")
 	if err != nil {
 		log.Fatalf("Error reading config file: %v", err)
